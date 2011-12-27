@@ -1,0 +1,44 @@
+Meeting log 2011/12/19 @Delta, N204
+
+===To do now===
++Static update mechanism //yasukata
++Auth+login //iomz
+
+===Headers===
++darsh server //yasukata
+#public key administration
+#bind the key with a client 
+#accept client and send back the public key
+
++darsh client
+ +host mode
+#Shell emulater //iomz (not for now)
+#Public key authentication //iomz
+#Get public_key from the server //yasukata (not for now) 
+#Information update routine //yasukata (static routine for now)
+
+ +client mode
+  +void Keygen(char* host_name, char* private_key, char* public_key);	 //iomz
+#Renerate a key and send it with the host_name to the darsh server
+
+  +void* ToFinger(char* public_key, char* fingerprint);    	         //yasukata (not for now)
+
+  +int Discover(char* host_name, char* fingerprint, char* host_address); //yasukata
+#Return 0 on success and assign IP address to host_address
+#Return 1 if the host not available
+
+  +int Auth(char* host_address, char* key); //iomz
+#Return 0 on success and access granted
+#Return 1 if the host denied
+
+===To do next===
++Cryptographic algorithm
+ +void encrypt(void* buf1, void* buf2, char* key); //iomz
++Dynamic information mechanism //yasukata
++Emulated shell
+ +void ShellHandler() //iomz
+
+===To do later===
++Encryption of server database (text) //?
++TTY emulation //iomz
++Client availability //yasukata
