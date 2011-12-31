@@ -16,6 +16,9 @@
 
 #include "darsh.h"
 
+int port_num = 5000;
+char *peer_host = "localhost";
+
 int interval = 3;
 char *interface_name = "br0";
 char *host_id = "client01";
@@ -25,6 +28,30 @@ char *host_id = "client01";
 * you need to change peer_server
 */
 char *devide_letter = ", ";
+
+int read_line(int socket, char *p)
+{
+	int len = 0;
+	while (1) {
+		int ret;
+		ret = read(socket, p, 1);
+		if (ret == -1) {
+			perror("read");
+			return -1;
+		} else if (ret == 0) {
+			break;
+		}
+		if (*p == '\n') {
+			p++;
+			len++;
+			break;
+		}
+		p++;
+		len++;
+	}
+	*p = '\0';
+	return len;
+}
 
 char *get_host(void)
 {
@@ -62,13 +89,15 @@ char *get_client_info()
 }
 
 
-int main(int argc, char **argv)
+int server(void)
 {
+	printf("Server Mode Start.\n");
+
 	int sock_fd, len;
 	char buf[BUF_LEN];
 	struct sockaddr_in serv;
-	unsigned short port = 5000;
-	char *hostname = "localhost";
+	unsigned short port = port_num;
+	char *hostname = peer_host;
 
 	char *client_info = get_client_info();
 
@@ -108,3 +137,67 @@ int main(int argc, char **argv)
 	return 0;
 }
 
+int client(void)
+{
+	printf("Client Mode Start.\n");
+
+	int sock_fd, len;
+	char buf[BUF_LEN];
+	struct sockaddr_in serv;
+	unsigned short port = port_num;
+	char *hostname = peer_host;
+
+	if ((sock_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+		perror ("socket");
+	}
+
+	serv.sin_family = PF_INET;
+	serv.sin_port = htons(port);
+	inet_aton(hostname, &serv.sin_addr);
+
+	if (connect(sock_fd, (struct sockaddr*)&serv, sizeof(struct sockaddr_in)) < 0)
+	{
+		perror("connect");
+		return -2;
+	}
+
+	while (1) {
+		char get[BUF_LEN] = {0};
+		printf("-> %s", get);
+		scanf("%s", get);
+
+		len = send(sock_fd, get, strlen(get), 0);
+		len = read_line(sock_fd, buf);
+
+		printf("%s\n", buf);
+	}
+
+	close(sock_fd);
+	return 0;
+}
+
+void usage(void)
+{
+	printf("usage: darsh-client\n");
+	printf("Server Mode: darsh-client s\n");
+	printf("Client Mode: darsh-client c\n");
+}
+
+#define SERVER_MODE "s"
+#define CLIENT_MODE "c"
+int main(int argc, char **argv)
+{
+	int ret;
+	char *opt = argv[1];
+
+	if (argc <= 1) {
+		usage();
+		return 0;
+	}
+
+	if (strncmp(SERVER_MODE, opt, strlen(SERVER_MODE)) == 0) {
+		ret = server();
+	} else if (strncmp(CLIENT_MODE, opt, strlen(CLIENT_MODE)) == 0) {
+		ret = client();
+	}
+}

@@ -89,6 +89,23 @@ void parse_darsh_table(int num)
 	fclose(db);
 }
 
+int TrimEnd(char *s)
+{
+	int i;
+	int count = 0;
+
+	if (s == NULL) {
+		return -1;
+	}
+
+	i = strlen(s);
+	while (--i >= 0 && s[i] == ' ') count++;
+
+	s[i + 1] = '\0';
+
+	return count;
+}
+
 char *search_host_ip(char *hostname)
 {
 	FILE *fp;
@@ -106,14 +123,18 @@ char *search_host_ip(char *hostname)
 		printf("fgets is [%s]\n", s);
 		printf("find .......");
 		printf("find [%s]\n", hostname);
+
 		ret = strstr(s, hostname);
 
 		if (ret != NULL) {
 			ret_val = ret+strlen(hostname)+PROTO_OFFSET;
-			printf("ret_val = %s\n", ret_val);
-			//strcpy(val ,ret_val);
-			printf("hogehoge: %s", ret_val);
-			break;
+			ret = strstr(ret_val, PROTO_DEVIDE);
+			if (ret == NULL) {
+				printf("ret_val = %s\n", ret_val);
+				break;
+			} else {
+				ret_val = NULL;
+			}
 		} else {
 			printf("ret is NULL\n");
 			ret_val = NULL;
@@ -215,7 +236,6 @@ int read_peer_sock(int sock)
 	int read_size;
 	char buf[BUF_LEN];
 	char *ret;
-	char val[BUF_LEN];
 
 	read_size = read(sock, buf, sizeof(buf)-1);
 
@@ -241,8 +261,8 @@ int read_peer_sock(int sock)
 		ret = search_host_ip(buf);
 		printf("ret is %s\n", ret);
 		if (ret != NULL) {
-			strncpy(val, ret, BUF_LEN);
-			write(sock, val, strlen(buf));
+			printf("write %s\n", ret);
+			write(sock, ret, strlen(ret));
 		} else {
 			char *sorry = "Sorry, do not have the host ip.\n";
 			write(sock, sorry, strlen(sorry));
