@@ -15,12 +15,13 @@
 #include <sys/ioctl.h>
 
 #include "darsh.h"
+#include "darshell.h"
 
 int port_num = 5000;
 char *peer_host = "localhost";
 
 int interval = 3;
-char *interface_name = "br0";
+char *interface_name = "eth0";
 char *host_id = "client01";
 
 /* this affects to client_table
@@ -89,17 +90,17 @@ char *get_client_info()
 }
 
 
-int server(void)
+int server(char **envp)
 {
 	printf("Server Mode Start.\n");
 
-	int sock_fd, len;
-	char buf[BUF_LEN];
+	int sock_fd, len, status;
+	//char buf[BUF_LEN]; // unused
 	struct sockaddr_in serv;
 	unsigned short port = port_num;
 	char *hostname = peer_host;
-
 	char *client_info = get_client_info();
+	pid_t pid, cpid;
 
 	if ((sock_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 		perror ("socket");
@@ -115,8 +116,21 @@ int server(void)
 		return -2;
 	}
 
-	while (1) {
-		printf("send:%s\n", client_info);
+	/* Fork server functions to two; update and remote access */
+	pid = fork();
+	if(pid<0){
+	  perror("fork");
+	  exit(-1);
+	}
+	/* Child process: remote access */
+	if( pid==0 ){
+	  shellserv(envp, port);
+	  cpid = wait(&status);
+	}
+	/* Parent process: updating info */
+	else{
+	  for(;;){
+	    //printf("send:%s\n", client_info);
 		len = send(sock_fd, client_info, strlen(client_info), 0);
 		sleep(interval);
 /*	
@@ -131,6 +145,7 @@ int server(void)
 		buf[len] = '\0';
 		printf("<- %s\n", buf);
 */
+	  }
 	}
 
 	close(sock_fd);
@@ -161,6 +176,7 @@ int client(void)
 		return -2;
 	}
 
+	/* Get host address and connect to the shell */
 	while (1) {
 		char get[BUF_LEN] = {0};
 		printf("-> %s", get);
@@ -169,7 +185,8 @@ int client(void)
 		len = send(sock_fd, get, strlen(get), 0);
 		len = read_line(sock_fd, buf);
 
-		printf("%s\n", buf);
+		printf("%s found: %s\n", get, buf);
+		shellclnt(buf, port);
 	}
 
 	close(sock_fd);
@@ -185,7 +202,7 @@ void usage(void)
 
 #define SERVER_MODE "s"
 #define CLIENT_MODE "c"
-int main(int argc, char **argv)
+int main(int argc, char **argv, char **envp)
 {
 	int ret;
 	char *opt = argv[1];
@@ -196,8 +213,9 @@ int main(int argc, char **argv)
 	}
 
 	if (strncmp(SERVER_MODE, opt, strlen(SERVER_MODE)) == 0) {
-		ret = server();
+		ret = server(envp);
 	} else if (strncmp(CLIENT_MODE, opt, strlen(CLIENT_MODE)) == 0) {
 		ret = client();
 	}
+	return 0;
 }
