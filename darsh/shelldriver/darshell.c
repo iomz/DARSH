@@ -41,7 +41,7 @@ void comparse(char *buf, char **args){
   }//outer while
   args[i] = NULL;
 
-  int fdout = open("/Users/iomz/darsh/darshell/out", O_WRONLY|O_APPEND|O_CREAT, 0644 );
+  int fdout = open("/Users/yasukata/Desktop/darsh-test", O_WRONLY|O_APPEND|O_CREAT, 0644 );
   if(fdout == -1)
     errorhandler("open");
   dprintf(fdout, "Parsed arguments[%d]: ", argc);

@@ -2,11 +2,19 @@
 #define PROTO_DEVIDE ", "
 #define PROTO_OFFSET strlen(PROTO_DEVIDE)
 
-int accept_new_client(int sock);
-int read_and_save_table(int sock);
-int read_and_reply(int sock);
-void write_to_db_file(char*content);
-int read_line(int socket, char *p);
-char *get_hostname(void);
-char *get_ip(void);
+#define db_filename "client_table"
 
+struct darsh_client {
+	char *client_name;
+	char *ip_address;
+};
+
+typedef struct CLIENT_INFO {
+	char hostname[BUF_LEN];
+	char ipaddr[BUF_LEN];
+	int port;
+	time_t last_access;
+} CLIENT_INFO;
+
+int darsh_server(void);
+int darsh_peer(void);

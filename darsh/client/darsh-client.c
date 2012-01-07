@@ -97,9 +97,10 @@ int server(char **envp)
 	int sock_fd, len, status;
 	//char buf[BUF_LEN]; // unused
 	struct sockaddr_in serv;
-	unsigned short port = port_num;
+	unsigned short port = 5000;
 	char *hostname = peer_host;
-	char *client_info = get_client_info();
+	//char *client_info = get_client_info(); // change for refactor
+	char *client_info;
 	pid_t pid, cpid;
 
 	if ((sock_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
@@ -117,20 +118,25 @@ int server(char **envp)
 	}
 
 	/* Fork server functions to two; update and remote access */
+	/*
 	pid = fork();
 	if(pid<0){
 	  perror("fork");
 	  exit(-1);
 	}
+	*/
 	/* Child process: remote access */
+	/*
 	if( pid==0 ){
 	  shellserv(envp, port);
 	  cpid = wait(&status);
 	}
+	*/
 	/* Parent process: updating info */
-	else{
+	//else{
 	  for(;;){
-	    //printf("send:%s\n", client_info);
+	  	client_info = get_client_info();
+	  	printf("send:%s\n", client_info);
 		len = send(sock_fd, client_info, strlen(client_info), 0);
 		sleep(interval);
 /*	
@@ -146,7 +152,7 @@ int server(char **envp)
 		printf("<- %s\n", buf);
 */
 	  }
-	}
+	//}
 
 	close(sock_fd);
 	return 0;
@@ -159,7 +165,7 @@ int client(void)
 	int sock_fd, len;
 	char buf[BUF_LEN];
 	struct sockaddr_in serv;
-	unsigned short port = port_num;
+	unsigned short port = 5001;
 	char *hostname = peer_host;
 
 	if ((sock_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
@@ -176,7 +182,6 @@ int client(void)
 		return -2;
 	}
 
-	/* Get host address and connect to the shell */
 	while (1) {
 		char get[BUF_LEN] = {0};
 		printf("-> %s", get);
@@ -184,9 +189,8 @@ int client(void)
 
 		len = send(sock_fd, get, strlen(get), 0);
 		len = read_line(sock_fd, buf);
-
 		printf("%s found: %s\n", get, buf);
-		shellclnt(buf, port);
+		//shellclnt(buf, port);
 	}
 
 	close(sock_fd);

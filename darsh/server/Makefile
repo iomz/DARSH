@@ -1,17 +1,14 @@
-CC	= gcc
-PROJECT	= darsh
-PACKAGE = darsh-server
-SRCS	= $(PACKAGE).c
-HEADS	= $(PROJECT).h
-OBJS	= $(PACKAGE).o
-PROGRAM	= $(PACKAGE)
+CC = gcc
+CFLAGS = -g -O -Wall -W
 
-all: $(PROGRAM)
+all: darsh-server
 
-$(PROGRAM):
-	$(CC) $(SRCS) -o $(PROGRAM)
+darsh-server: main.o darsh-server.o darsh-peer.o
+	${CC} ${CFLAGS} -o darsh-server main.o darsh-server.o darsh-peer.o
 
-$(OBJS): $(HEADS) Makefile
+main.o: main.c darsh.h
+darsh-server.o: darsh-server.c darsh.h
+darsh-peer.o: darsh-peer.c darsh.h
 
 clean:
-	rm -f *.o *~ $(PROGRAM)
+	rm -f *.o
