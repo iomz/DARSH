@@ -13,6 +13,7 @@ $(PROGRAM):
 	$(CC) ${CFLAGS} $(SRCS) darshell.c -o $(PROGRAM)
 
 $(OBJS): $(HEADS) Makefile
+darsh-client.o: darsh-client.c darsh-client.h darsh-common.h
 darshell.o: darshell.c darshell.h
 #
 clean:

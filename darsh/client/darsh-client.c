@@ -14,10 +14,10 @@
 #include <netdb.h>
 #include <sys/ioctl.h>
 
-#include "darsh.h"
+#include "darsh-client.h"
+#include "darsh-common.h"
 #include "darshell.h"
 
-int port_num = 5000;
 char *peer_host = "localhost";
 
 int interval = 3;
@@ -33,6 +33,7 @@ char *devide_letter = ", ";
 int read_line(int socket, char *p)
 {
 	int len = 0;
+	int i = 0;
 	while (1) {
 		int ret;
 		ret = read(socket, p, 1);
@@ -44,6 +45,10 @@ int read_line(int socket, char *p)
 		}
 		if (*p == '\n') {
 			p++;
+			len++;
+			break;
+		}
+		if (*p == '\0') {
 			len++;
 			break;
 		}
@@ -92,12 +97,12 @@ char *get_client_info()
 
 int server(char **envp)
 {
-	printf("Server Mode Start.\n");
+	printf("******* Info Server *******\n");
 
 	int sock_fd, len, status;
 	//char buf[BUF_LEN]; // unused
 	struct sockaddr_in serv;
-	unsigned short port = 5000;
+	unsigned short port = TABLE_SERVER_PORT;
 	char *hostname = peer_host;
 	//char *client_info = get_client_info(); // change for refactor
 	char *client_info;
@@ -152,7 +157,6 @@ int server(char **envp)
 		printf("<- %s\n", buf);
 */
 	  }
-	//}
 
 	close(sock_fd);
 	return 0;
@@ -160,12 +164,12 @@ int server(char **envp)
 
 int client(void)
 {
-	printf("Client Mode Start.\n");
+	printf("******* Client Mode *******\n");
 
 	int sock_fd, len;
 	char buf[BUF_LEN];
 	struct sockaddr_in serv;
-	unsigned short port = 5001;
+	unsigned short port = PEER_SERVER_PORT;
 	char *hostname = peer_host;
 
 	if ((sock_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
@@ -181,6 +185,10 @@ int client(void)
 		perror("connect");
 		return -2;
 	}
+
+	/* This First Peer Server Message is important for clean TCP connection */
+	len = read_line(sock_fd, buf);
+	printf("First Peer Server Message: %s\n", buf);
 
 	while (1) {
 		char get[BUF_LEN] = {0};
@@ -204,7 +212,7 @@ void usage(void)
 	printf("Client Mode: darsh-client c\n");
 }
 
-#define SERVER_MODE "s"
+#define INFO_SERVER_MODE "s"
 #define CLIENT_MODE "c"
 int main(int argc, char **argv, char **envp)
 {
@@ -216,7 +224,7 @@ int main(int argc, char **argv, char **envp)
 		return 0;
 	}
 
-	if (strncmp(SERVER_MODE, opt, strlen(SERVER_MODE)) == 0) {
+	if (strncmp(INFO_SERVER_MODE, opt, strlen(INFO_SERVER_MODE)) == 0) {
 		ret = server(envp);
 	} else if (strncmp(CLIENT_MODE, opt, strlen(CLIENT_MODE)) == 0) {
 		ret = client();

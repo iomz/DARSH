@@ -1,14 +1,16 @@
 CC = gcc
 CFLAGS = -g -O -Wall -W
+PACKAGE = darsh-server
+PROGRAM = $(PACKAGE)
 
-all: darsh-server
+all: $(PROGRAM)
 
 darsh-server: main.o darsh-server.o darsh-peer.o
 	${CC} ${CFLAGS} -o darsh-server main.o darsh-server.o darsh-peer.o
 
-main.o: main.c darsh.h
-darsh-server.o: darsh-server.c darsh.h
-darsh-peer.o: darsh-peer.c darsh.h
+main.o: main.c darsh.h darsh-common.h
+darsh-server.o: darsh-server.c darsh.h darsh-common.h
+darsh-peer.o: darsh-peer.c darsh.h darsh-common.h
 
 clean:
-	rm -f *.o
+	rm -f *.o *~ $(PROGRAM)

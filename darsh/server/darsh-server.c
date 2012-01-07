@@ -16,6 +16,7 @@
 #include <stdio.h>
 
 #include "darsh.h"
+#include "darsh-common.h"
 
 char *table_split = "\n";
 
@@ -35,7 +36,6 @@ server_accept_new_client(int sock)
 	len = sizeof(server_sin);
 	new_socket = accept(server_listening_socket, (struct sockaddr *)&server_sin, &len);
 
-	printf("server_accept_new_client");
 	if (new_socket == -1) {
 		perror("accept");
 		return -1;
@@ -94,37 +94,6 @@ int read_and_save_table(int sock)
 	return read_size;
 }
 
-
-int server_read_and_reply(int sock)
-{
-	int read_size;
-	char buf[BUF_LEN];
-
-	read_size = read(sock, buf, sizeof(buf)-1);
-
-	if (read_size == 0 || read_size == -1) {
-		printf("Connection from: %s (%s) port %d  descriptor %d\n",
-			client_info_server[sock].hostname,
-			client_info_server[sock].ipaddr,
-			client_info_server[sock].port,
-			sock);
-		close(sock);
-		client_info_server[sock].last_access = 0;
-	} else {
-		buf[read_size] = '\0';
-		printf("Message from: %s (%s) port %d  descriptor %d:[ %s ]\n",
-			client_info_server[sock].hostname,
-			client_info_server[sock].ipaddr,
-			client_info_server[sock].port,
-			sock,
-			buf);
-		write(sock, buf, strlen(buf));
-		time(&client_info_server[sock].last_access);
-	}
-	return read_size;
-}
-
-
 void write_to_db_file(char *content)
 {
 	FILE *db;
@@ -141,7 +110,7 @@ int darsh_server()
 {
 	int len, ret;
 	int sock_optval = 1;
-	int port = 5000;
+	int port = TABLE_SERVER_PORT;
 
 	fd_set target_fds;
 	fd_set org_target_fds;
@@ -174,7 +143,7 @@ int darsh_server()
 		return -1;
 	}
 
-	printf("server process: watch port %d....\n", port);
+	printf("Table Server process: watch port %d....\n", port);
 
 	FD_ZERO(&org_target_fds);
 	FD_SET(server_listening_socket, &org_target_fds);

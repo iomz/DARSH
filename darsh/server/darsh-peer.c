@@ -18,6 +18,7 @@
 #include <regex.h>
 
 #include "darsh.h"
+#include "darsh-common.h"
 
 CLIENT_INFO client_info_peer[FD_SETSIZE];
 
@@ -35,8 +36,6 @@ char *search_host_ip(char *hostname)
 		printf("file open error.\n");
 	}
 
-	printf("[search_host_ip] hostname is %s is this\n", hostname);
-
 	while (fgets(s, BUF_LEN, fp) != NULL) {
 
 		ret = strstr(s, hostname);
@@ -45,13 +44,11 @@ char *search_host_ip(char *hostname)
 			ret_val = ret+strlen(hostname)+PROTO_OFFSET;
 			ret = strstr(ret_val, PROTO_DEVIDE);
 			if (ret == NULL) {
-				printf("ret_val = %s\n", ret_val);
 				break;
 			} else {
 				ret_val = NULL;
 			}
 		} else {
-			printf("ret is NULL\n");
 			ret_val = NULL;
 		}
 	}
@@ -66,6 +63,7 @@ peer_accept_new_client(int sock)
 	int new_socket;
 	struct hostent *peer_host;
 	struct sockaddr_in peer_sin;
+	char wellcome[BUF_LEN] = "Wellcome to DARSH!! Please input a hostname you want to connect.\n";
 
 	len = sizeof(p_sin);
 	new_socket = accept(peer_listening_socket, (struct sockaddr *)&p_sin, &len);
@@ -96,6 +94,8 @@ peer_accept_new_client(int sock)
 			client_info_peer[new_socket].ipaddr,
 			client_info_peer[new_socket].port,
 			new_socket);
+	/* This Message is important for clean TCP connection. */
+	write(new_socket, wellcome, strlen(wellcome));
 	return new_socket;
 }
 
@@ -106,7 +106,6 @@ int read_peer_sock(int sock)
 	char *ret;
 
 	read_size = read(sock, buf, sizeof(buf)-1);
-	printf("recv: %s\n", buf);
 
 	if (read_size == 0 || read_size == -1) {
 		printf("Connection from: %s (%s) port %d  descriptor %d\n",
@@ -124,12 +123,8 @@ int read_peer_sock(int sock)
 			client_info_peer[sock].port,
 			sock,
 			buf);
-		printf("goto search_host_ip\n");
-		printf("buf is %s is this ?\n", buf);
 		ret = search_host_ip(buf);
-		printf("ret is %s\n", ret);
 		if (ret != NULL) {
-			printf("write %s\n", ret);
 			write(sock, ret, strlen(ret));
 		} else {
 			char *sorry = "Sorry, do not have the host ip.\n";
@@ -169,7 +164,7 @@ int darsh_peer()
 	int connected_socket;
 	int len, ret;
 	int sock_optval = 1;
-	int port = 5001;
+	int port = PEER_SERVER_PORT;
 
 	fd_set target_fds;
 	fd_set org_target_fds;
@@ -202,7 +197,7 @@ int darsh_peer()
 		return -1;
 	}
 
-	printf("peer process: watch port %d....\n", port);
+	printf("Peer Server process: watch port %d....\n", port);
 
 	FD_ZERO(&org_target_fds);
 	FD_SET(peer_listening_socket, &org_target_fds);
@@ -230,7 +225,6 @@ int darsh_peer()
 					}
 				} else {
 					int read_size;
-					printf("read_peer_sock");
 					read_size = read_peer_sock(i);
 					if (read_size == -1 || read_size == 0) {
 						FD_CLR(i, &org_target_fds);

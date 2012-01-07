@@ -1,6 +1,4 @@
-#define BUF_LEN 256
-#define PROTO_DEVIDE ", "
-#define PROTO_OFFSET strlen(PROTO_DEVIDE)
+#include "darsh-common.h"
 
 #define db_filename "client_table"
 
