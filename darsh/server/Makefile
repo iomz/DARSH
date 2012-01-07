@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g -O -Wall -W
+CFLAGS = -g -O -Wall -W -Wno-pointer-sign
 PACKAGE = darsh-server
 PROGRAM = $(PACKAGE)
 

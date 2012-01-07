@@ -36,6 +36,10 @@ server_accept_new_client(int sock)
 	len = sizeof(server_sin);
 	new_socket = accept(server_listening_socket, (struct sockaddr *)&server_sin, &len);
 
+	if (sock < 0) {
+		printf("no socket error\n");
+	}
+
 	if (new_socket == -1) {
 		perror("accept");
 		return -1;
@@ -63,6 +67,19 @@ server_accept_new_client(int sock)
 			client_info_server[new_socket].port,
 			new_socket);
 	return new_socket;
+}
+
+
+void write_to_db_file(char *content)
+{
+	FILE *db;
+	if ((db = fopen(db_filename, "a")) == NULL) {
+		printf("file cannot open");
+	}
+	fputs(content, db);
+	fputs(table_split, db);
+	fclose(db);
+	return;
 }
 
 int read_and_save_table(int sock)
@@ -94,21 +111,9 @@ int read_and_save_table(int sock)
 	return read_size;
 }
 
-void write_to_db_file(char *content)
-{
-	FILE *db;
-	if ((db = fopen(db_filename, "a")) == NULL) {
-		printf("file cannot open");
-	}
-	fputs(content, db);
-	fputs(table_split, db);
-	fclose(db);
-	return;
-}
-
 int darsh_server()
 {
-	int len, ret;
+	int ret;
 	int sock_optval = 1;
 	int port = TABLE_SERVER_PORT;
 

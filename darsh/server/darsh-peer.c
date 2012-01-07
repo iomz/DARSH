@@ -68,6 +68,10 @@ peer_accept_new_client(int sock)
 	len = sizeof(p_sin);
 	new_socket = accept(peer_listening_socket, (struct sockaddr *)&p_sin, &len);
 
+	if (sock < 0) {
+		printf("no sock error\n");
+	}
+
 	if (new_socket == -1) {
 		perror("accept");
 		return -1;
@@ -161,8 +165,7 @@ int peer_read_line(int socket, char *p)
  
 int darsh_peer()
 {
-	int connected_socket;
-	int len, ret;
+	int ret;
 	int sock_optval = 1;
 	int port = PEER_SERVER_PORT;
 

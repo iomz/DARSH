@@ -5,9 +5,8 @@
 #include "darsh.h"
 #include "darsh-common.h"
 
-int main(int argc, char **argv)
+int main()
 {
-	int status;
 	pid_t pid;
 
 	pid = fork();

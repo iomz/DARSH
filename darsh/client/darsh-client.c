@@ -33,7 +33,6 @@ char *devide_letter = ", ";
 int read_line(int socket, char *p)
 {
 	int len = 0;
-	int i = 0;
 	while (1) {
 		int ret;
 		ret = read(socket, p, 1);
@@ -123,40 +122,25 @@ int server(char **envp)
 	}
 
 	/* Fork server functions to two; update and remote access */
-	/*
 	pid = fork();
 	if(pid<0){
 	  perror("fork");
 	  exit(-1);
 	}
-	*/
 	/* Child process: remote access */
-	/*
 	if( pid==0 ){
 	  shellserv(envp, port);
 	  cpid = wait(&status);
 	}
-	*/
 	/* Parent process: updating info */
-	//else{
+	else{
 	  for(;;){
 	  	client_info = get_client_info();
 	  	printf("send:%s\n", client_info);
 		len = send(sock_fd, client_info, strlen(client_info), 0);
 		sleep(interval);
-/*	
-		printf("->");
-		fgets(buf, BUF_LEN, stdin);
-
-		len = strlen(buf);
-
-		len = send(sock_fd, buf, len, 0);
-		len = recv(sock_fd, buf, len, 0);
-
-		buf[len] = '\0';
-		printf("<- %s\n", buf);
-*/
 	  }
+	 }
 
 	close(sock_fd);
 	return 0;
@@ -198,7 +182,7 @@ int client(void)
 		len = send(sock_fd, get, strlen(get), 0);
 		len = read_line(sock_fd, buf);
 		printf("%s found: %s\n", get, buf);
-		//shellclnt(buf, port);
+		shellclnt(buf, port);
 	}
 
 	close(sock_fd);
