@@ -17,4 +17,4 @@ shelldriver.o: shelldriver.c darshell.h
 darshell.o: darshell.c darshell.h
 #
 clean:
-	rm -f *.o
+	rm -f *.o shellserv shellclnt shelldriver
