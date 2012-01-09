@@ -105,7 +105,6 @@ int server(char **envp)
 	char *hostname = peer_host;
 	//char *client_info = get_client_info(); // change for refactor
 	char *client_info;
-	pid_t pid, cpid;
 
 	if ((sock_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 		perror ("socket");
@@ -121,31 +120,61 @@ int server(char **envp)
 		return -2;
 	}
 
-	/* Fork server functions to two; update and remote access */
+	/****************/
+        /* shell socket */
+        /****************/
 
-	pid = fork();
-	if(pid<0){
-	  perror("fork");
-	  exit(-1);
-	}
+	int servSock;
+	int clntSock;
+	struct sockaddr_in servAddr;
+	struct sockaddr_in clntAddr;
+	unsigned int clntLen;
 
-	/* Child process: remote access */
+	/* need modification for servPort here */
+	unsigned short servPort = port;
+	/***************************************/
 
-	if( pid==0 ){
-	  shellserv(envp, port);
-	  cpid = wait(&status);
-	}
+	/* Create socket for incoming connections */
+	if((servSock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+	  errorhandler("socket");
+      
+	/* Construct local address structure */
+	memset(&servAddr, 0, sizeof(servAddr));
+	servAddr.sin_family = AF_INET;
+	servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servAddr.sin_port = htons(servPort);
 
-	/* Parent process: updating info */
-	else{
-	  for(;;){
-	  	char hoge[BUF_LEN] = {0};
-	  	client_info = get_client_info();
-	  	printf("send:%s\n", client_info);
-		len = send(sock_fd, client_info, strlen(client_info), 0);
-		sleep(interval);
+	if(bind(servSock, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0)
+	  errorhandler("bind");
+
+	if(listen(servSock, MAXPENDING) < 0)
+	  errorhandler("listen");
+
+	clntLen = sizeof(clntAddr);
+
+	fprintf(stderr, "SHELL server <%s> is waiting for clients at port %d\n", "localhost", servPort);
+
+	/********************/
+        /* shell socket end */
+        /********************/
+
+	for(;;){
+	  /* Update if acception is not successful */
+	  if((clntSock = accept(servSock, (struct sockaddr *) &clntAddr, &clntLen)) < 0){
+	    //char hoge[BUF_LEN] = {0};
+	    client_info = get_client_info();
+	    printf("send:%s\n", client_info);
+	    len = send(sock_fd, client_info, strlen(client_info), 0);
 	  }
-	 }
+	  /* When connection established, hand the socket to darshell */
+	  else{
+	    fprintf(stderr, "Connected to client %s\n", inet_ntoa(clntAddr.sin_addr));
+	    for(;;)
+	      if(ShellHandler(clntSock, envp)==0)
+		break;
+	  }
+	  sleep(interval);
+	}
 
 	close(sock_fd);
 	return 0;

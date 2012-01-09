@@ -27,11 +27,11 @@ extern int errno;
 sigjmp_buf env;
 char dpath[MAXPATHLEN];
 
-int shellserv(char **, unsigned short);
+int ShellHandler(int, char **);
 int shellclnt(char *, unsigned short);
 void sethome(char **);
 void sighandler(int);
 void comparse(char *, char **);
 void dupcheck(int, int);
 void errorhandler(char *);
-int HandleTCPClient(int, char **);
+
