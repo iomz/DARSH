@@ -122,19 +122,24 @@ int server(char **envp)
 	}
 
 	/* Fork server functions to two; update and remote access */
+
 	pid = fork();
 	if(pid<0){
 	  perror("fork");
 	  exit(-1);
 	}
+
 	/* Child process: remote access */
+
 	if( pid==0 ){
 	  shellserv(envp, port);
 	  cpid = wait(&status);
 	}
+
 	/* Parent process: updating info */
 	else{
 	  for(;;){
+	  	char hoge[BUF_LEN] = {0};
 	  	client_info = get_client_info();
 	  	printf("send:%s\n", client_info);
 		len = send(sock_fd, client_info, strlen(client_info), 0);
@@ -213,5 +218,6 @@ int main(int argc, char **argv, char **envp)
 	} else if (strncmp(CLIENT_MODE, opt, strlen(CLIENT_MODE)) == 0) {
 		ret = client();
 	}
+
 	return 0;
 }
