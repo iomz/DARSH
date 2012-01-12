@@ -40,7 +40,8 @@ void comparse(char *buf, char **args){
     argc++;
   }//outer while
   args[i] = NULL;
-
+  
+  /* Test out
   int fdout = open("/Users/yasukata/Desktop/darsh-test", O_WRONLY|O_APPEND|O_CREAT, 0644 );
   if(fdout == -1)
     errorhandler("open");
@@ -49,7 +50,7 @@ void comparse(char *buf, char **args){
     dprintf(fdout, "%s ", args[i]);
   dprintf(fdout, "\n");
   close(fdout);
-
+  */
   return;
 }
 
