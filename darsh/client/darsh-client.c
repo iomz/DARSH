@@ -18,17 +18,26 @@
 #include "darsh-common.h"
 #include "darshell.h"
 
-char *peer_host = "localhost";
+char *config_file = "darsh-conf";
 
-int interval = 3;
-char *interface_name = "eth0";
-char *host_id = "client01";
+char *permute_str(const char *a, const char *b, const char *c)
+{
+	int i = 0, max_a, max_b;
+	char result[BUF_LEN];
+	result[0] = '\0';
 
-/* this affects to client_table
-* if you change this protocol, 
-* you need to change peer_server
-*/
-char *devide_letter = ", ";
+	max_a = strlen(a);
+	max_b = strlen(b);
+	for (i = 0; i <= max_a; i++) {
+		if (0 == strncmp(&a[i], b, max_b)) {
+			strcat(result, c);
+			i += max_b - 1;
+		} else {
+			strncat(result, &a[i], 1);
+		}
+	}
+	return result;
+}
 
 int read_line(int socket, char *p)
 {
@@ -69,7 +78,7 @@ char *get_host(void)
 	return uname_info->nodename;
 }
 
-char *get_ip(void) {
+char *get_ip(char *interface_name) {
 	int fd;
 	struct ifreq ifr;
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -80,11 +89,13 @@ char *get_ip(void) {
 	return inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr);
 }
 
-char *get_client_info()
+char *get_client_info(char *host_id, char *interface_name)
 {
 
-	char *client_info = get_host();
-	char *client_ip = get_ip();
+	//char *client_info = get_host();
+	char client_info[BUF_LEN];
+	strcpy(client_info, host_id);
+	char *client_ip = get_ip(interface_name);
 
 	strcat(client_info, devide_letter);
 	strcat(client_info, client_ip);
@@ -94,93 +105,57 @@ char *get_client_info()
 }
 
 
-int server(char **envp)
+int server(char **envp, char *peer_host, int interval, char *interface_name, char *host_id)
 {
 	printf("******* Info Server *******\n");
 
 	int sock_fd, len, status;
-	//char buf[BUF_LEN]; // unused
 	struct sockaddr_in serv;
-	unsigned short port = TABLE_SERVER_PORT;
+	unsigned short info_port = TABLE_SERVER_PORT;
+	unsigned short port = WAIT_SERVER_PORT;
 	char *hostname = peer_host;
-	//char *client_info = get_client_info(); // change for refactor
 	char *client_info;
+	pid_t pid, cpid;
 
 	if ((sock_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 		perror ("socket");
 	}
 
 	serv.sin_family = PF_INET;
-	serv.sin_port = htons(port);
+	serv.sin_port = htons(info_port);
 	inet_aton(hostname, &serv.sin_addr);
 
+	printf("try to connect to %s\n", hostname);
 	if (connect(sock_fd, (struct sockaddr*)&serv, sizeof(struct sockaddr_in)) < 0)
 	{
 		perror("connect");
 		return -2;
 	}
 
-	/****************/
-        /* shell socket */
-        /****************/
+	pid = fork();
+	if (pid < 0) {
+		perror("fork");
+		return -1;
+	}
 
-	int servSock;
-	int clntSock;
-	struct sockaddr_in servAddr;
-	struct sockaddr_in clntAddr;
-	unsigned int clntLen;
+	if (pid  == 0) {
+		/* insert darshell process function */
+		//ShellHandler(envp);
+		cpid = wait(&status);
+	}
 
-	/* need modification for servPort here */
-	unsigned short servPort = port;
-	/***************************************/
-
-	/* Create socket for incoming connections */
-	if((servSock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
-	  errorhandler("socket");
-      
-	/* Construct local address structure */
-	memset(&servAddr, 0, sizeof(servAddr));
-	servAddr.sin_family = AF_INET;
-	servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	servAddr.sin_port = htons(servPort);
-
-	if(bind(servSock, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0)
-	  errorhandler("bind");
-
-	if(listen(servSock, MAXPENDING) < 0)
-	  errorhandler("listen");
-
-	clntLen = sizeof(clntAddr);
-
-	fprintf(stderr, "SHELL server <%s> is waiting for clients at port %d\n", "localhost", servPort);
-
-	/********************/
-        /* shell socket end */
-        /********************/
-
-	for(;;){
-	  /* Update if acception is not successful */
-	  if((clntSock = accept(servSock, (struct sockaddr *) &clntAddr, &clntLen)) < 0){
-	    //char hoge[BUF_LEN] = {0};
-	    client_info = get_client_info();
-	    printf("send:%s\n", client_info);
-	    len = send(sock_fd, client_info, strlen(client_info), 0);
-	  }
-	  /* When connection established, hand the socket to darshell */
-	  else{
-	    fprintf(stderr, "Connected to client %s\n", inet_ntoa(clntAddr.sin_addr));
-	    for(;;)
-	      if(ShellHandler(clntSock, envp)==0)
-		break;
-	  }
-	  sleep(interval);
+	while (1) {
+		client_info = get_client_info(host_id, interface_name);
+		printf("send: %s\n", client_info);
+		len = send(sock_fd, client_info, strlen(client_info), 0);
+		sleep(interval);
 	}
 
 	close(sock_fd);
 	return 0;
 }
 
-int client(void)
+int client(char *peer_host)
 {
 	printf("******* Client Mode *******\n");
 
@@ -223,30 +198,83 @@ int client(void)
 	return 0;
 }
 
+void usage_server(void)
+{
+	printf("Usage Server Mode: darsh-client s host interface client_id\n");
+}
+
+void usage_client(void)
+{
+	printf("Usage Client Mode: darsh-client c host\n");
+}
+
 void usage(void)
 {
-	printf("usage: darsh-client\n");
-	printf("Server Mode: darsh-client s\n");
-	printf("Client Mode: darsh-client c\n");
+	usage_server();
+	usage_client();
 }
 
 #define INFO_SERVER_MODE "s"
 #define CLIENT_MODE "c"
+
 int main(int argc, char **argv, char **envp)
 {
 	int ret;
 	char *opt = argv[1];
 
-	if (argc <= 1) {
+	char *peer_host;
+	int interval;
+	char *host_id;
+	char *interface_name;
+
+	/* read and set config */
+	FILE *fp;
+	char str[BUF_LEN];
+
+	fp = fopen(config_file, "r");
+	if (fp == NULL) {
+		printf("cannot open file %s\n", config_file);
+		return -1;
+	}
+
+	while (fgets(str, BUF_LEN, fp) != NULL) {
+		char *adr;
+
+		if ((adr = strstr(str, CONF_INTERVAL)) != NULL) {
+			char *interval_str = adr + strlen(CONF_INTERVAL) + CONF_DEVIDE_LEN;
+			int interval_int = atoi(interval_str);
+			if (interval_int != 0) {
+				interval = interval_int;
+			}
+		}
+	}
+
+	/* setting client or server mode and peer address. */
+	if (argc <= 2) {
 		usage();
 		return 0;
 	}
 
 	if (strncmp(INFO_SERVER_MODE, opt, strlen(INFO_SERVER_MODE)) == 0) {
-		ret = server(envp);
+		if (argc <= 4) {
+			usage_server();
+			return 0;
+		} else {
+			peer_host = argv[2];
+			interface_name = argv[3];
+			host_id = argv[4];
+		}
+		ret = server(envp, peer_host, interval, interface_name, host_id);
 	} else if (strncmp(CLIENT_MODE, opt, strlen(CLIENT_MODE)) == 0) {
-		ret = client();
+		if (argc <= 2) {
+			usage_client();
+			return 0;
+		} else {
+			peer_host = argv[2];
+		}
+		ret = client(peer_host);
 	}
 
 	return 0;
 }
+
