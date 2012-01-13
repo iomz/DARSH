@@ -140,6 +140,10 @@ int shellclnt(char * shhost, unsigned short shport){
   if( connect(shsock, (struct sockaddr *)&shserv, sizeof(shserv)) < 0 )
     errorhandler("connect");
 
+  /******************/
+  /* authentication */
+  /******************/
+
   printf("\v/*********************************************************************/\n");
   printf("\t/* darsh connection established with %s:%d */", shhost, shport);
   printf("\n/*********************************************************************/\n\n");
@@ -202,7 +206,8 @@ void comparse(char *buf, char **args){
     argc++;
   }//outer while
   args[i] = NULL;
-
+  
+  /* Testing output for debugging 
   int fdout = open("/Users/iomz/darsh/darshell/out", O_WRONLY|O_APPEND|O_CREAT, 0644 );
   if(fdout == -1)
     errorhandler("open");
@@ -211,7 +216,7 @@ void comparse(char *buf, char **args){
     dprintf(fdout, "%s ", args[i]);
   dprintf(fdout, "\n");
   close(fdout);
-
+  */
   return;
 }
 

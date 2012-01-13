@@ -1,0 +1,2 @@
+openssl rsautl -encrypt -pubin -inkey pub.pem -in plain -out cipher
+openssl rsautl -decrypt -inkey priv.pem -in cipher -out plain2
