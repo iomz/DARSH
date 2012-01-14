@@ -20,11 +20,14 @@
 
 char *config_file = "darsh-conf";
 
-char *permute_str(const char *a, const char *b, const char *c)
+//char *permute_str(const char *a, const char *b, const char *c)
+char *permute_str(const char *a)
 {
+	char *b = "\n";
+	char *c = "\0";
 	int i = 0, max_a, max_b;
 	char result[BUF_LEN];
-	result[0] = '\0';
+	result[0] = "\0";
 
 	max_a = strlen(a);
 	max_b = strlen(b);
@@ -138,17 +141,17 @@ int server(char **envp, char *peer_host, int interval, char *interface_name, cha
 		return -1;
 	}
 
-	if (pid  == 0) {
+	if (pid  != 0) {
 		/* insert darshell process function */
 		//ShellHandler(envp);
 		cpid = wait(&status);
-	}
-
-	while (1) {
-		client_info = get_client_info(host_id, interface_name);
-		printf("send: %s\n", client_info);
-		len = send(sock_fd, client_info, strlen(client_info), 0);
-		sleep(interval);
+	} else {
+		while (1) {
+			client_info = get_client_info(host_id, interface_name);
+			printf("send: %s\n", client_info);
+			len = send(sock_fd, client_info, strlen(client_info), 0);
+			sleep(interval);
+		}
 	}
 
 	close(sock_fd);
@@ -224,8 +227,10 @@ int main(int argc, char **argv, char **envp)
 
 	char *peer_host;
 	int interval;
-	char *host_id;
-	char *interface_name;
+	//char *host_id;
+	char host_id[BUF_LEN];
+	//char *interface_name;
+	char interface_name[BUF_LEN];
 
 	/* read and set config */
 	FILE *fp;
@@ -246,10 +251,21 @@ int main(int argc, char **argv, char **envp)
 			if (interval_int != 0) {
 				interval = interval_int;
 			}
+		} else if ((adr = strstr(str, CONF_INTERFACE)) != NULL) {
+			char *interface_name_str = adr + strlen(CONF_INTERFACE) + CONF_DEVIDE_LEN;
+			strcpy(interface_name, permute_str(interface_name_str));
+		} else if ((adr = strstr(str, CONF_HOSTID)) != NULL) {
+			char *host_id_str = adr + strlen(CONF_HOSTID) + CONF_DEVIDE_LEN;
+			strcpy(host_id, permute_str(host_id_str));
 		}
 	}
 
+	printf("interavl: %d\n", interval);
+	printf("interface_name: %s\n", interface_name);
+	printf("host_id: %s\n", host_id);
+
 	/* setting client or server mode and peer address. */
+	/*
 	if (argc <= 2) {
 		usage();
 		return 0;
@@ -274,6 +290,7 @@ int main(int argc, char **argv, char **envp)
 		}
 		ret = client(peer_host);
 	}
+	*/
 
 	return 0;
 }
