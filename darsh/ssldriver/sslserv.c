@@ -61,8 +61,7 @@ SSL_CTX *setup_server_ctx(void)
         int_error("Error loading certificate from file");
     if (SSL_CTX_use_PrivateKey_file(ctx, CERTFILE, SSL_FILETYPE_PEM) != 1)
         int_error("Error loading private key from file");
-    SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
-                       verify_callback);
+    //SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback);
     SSL_CTX_set_verify_depth(ctx, 4);
     SSL_CTX_set_options(ctx, SSL_OP_ALL | SSL_OP_NO_SSLv2 |
                              SSL_OP_SINGLE_DH_USE);
@@ -101,12 +100,7 @@ long err;
 #endif
     if (SSL_accept(ssl) <= 0)
         int_error("Error accepting SSL connection");
-    if ((err = post_connection_check(ssl, CLIENT)) != X509_V_OK)
-    {
-        fprintf(stderr, "-Error: peer certificate: %s\n",
-                X509_verify_cert_error_string(err));
-        int_error("Error checking SSL object after connection");
-    }
+
     fprintf(stderr, "SSL Connection opened\n");
     if (do_server_loop(ssl))
         SSL_shutdown(ssl);
@@ -128,6 +122,7 @@ int main(int argc, char *argv[])
     THREAD_TYPE tid;
 
     init_OpenSSL(  );
+    OpenSSL_add_all_algorithms();	// Avoid PBE algoithm not found
     seed_prng(  );
  
     ctx = setup_server_ctx(  );

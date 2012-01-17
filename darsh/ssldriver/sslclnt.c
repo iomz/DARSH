@@ -52,9 +52,10 @@ int main(int argc, char *argv[])
     long    err;
 
     init_OpenSSL(  );
-    seed_prng(  );
+    OpenSSL_add_all_algorithms();	// Avoid PBE algoithm not found
+    seed_prng(  );			// Pseudorandom Number generation for OpenSSL
  
-    ctx = setup_client_ctx(  );
+    ctx = setup_client_ctx(  );		// Offer the correct certification
  
     conn = BIO_new_connect(SERVER ":" PORT);
     if (!conn)
@@ -63,16 +64,11 @@ int main(int argc, char *argv[])
     if (BIO_do_connect(conn) <= 0)
         int_error("Error connecting to remote machine");
  
-    ssl = SSL_new(ctx);
+    ssl = SSL_new(ctx);			// Create new SSL Object
     SSL_set_bio(ssl, conn, conn);
     if (SSL_connect(ssl) <= 0)
         int_error("Error connecting SSL object");
-    if ((err = post_connection_check(ssl, SERVER)) != X509_V_OK)
-    {
-        fprintf(stderr, "-Error: peer certificate: %s\n",
-                X509_verify_cert_error_string(err));
-        int_error("Error checking SSL object after connection");
-    }
+
     fprintf(stderr, "SSL Connection opened\n");
     if (do_client_loop(ssl))
         SSL_shutdown(ssl);
