@@ -102,6 +102,18 @@ char *get_client_info(char *host_id, char *interface_name)
 	return client_info;
 }
 
+char *get_client_info_FQDN(char *host_id)
+{
+	char client_info[BUF_LEN];
+	strcpy(client_info, host_id);
+
+	strcat(client_info, devide_letter);
+	strncat(client_info, get_host(), strlen(get_host()));
+	strcat(client_info, "\0");
+	strcat(client_info, "\n");
+
+	return client_info;
+}
 
 int server(char **envp, char *peer_host, int interval, char *interface_name, char *host_id)
 {
@@ -142,7 +154,8 @@ int server(char **envp, char *peer_host, int interval, char *interface_name, cha
 		cpid = wait(&status);
 	} else {
 		while (1) {
-			client_info = get_client_info(host_id, interface_name);
+			//client_info = get_client_info(host_id, interface_name);
+			client_info = get_client_info_FQDN(host_id);
 			printf("send: %s\n", client_info);
 			len = send(sock_fd, client_info, strlen(client_info), 0);
 			sleep(interval);
