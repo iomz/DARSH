@@ -18,13 +18,8 @@
 #include "darsh-common.h"
 #include "darshell.h"
 
-char *config_file = "darsh-conf";
-
-//char *permute_str(const char *a, const char *b, const char *c)
-char *permute_str(const char *a)
+char *permute_str(const char *a, const char *b, const char *c)
 {
-	char *b = "\n";
-	char *c = "\0";
 	int i = 0, max_a, max_b;
 	char result[BUF_LEN];
 	result[0] = "\0";
@@ -226,52 +221,17 @@ int main(int argc, char **argv, char **envp)
 	char *opt = argv[1];
 
 	char *peer_host;
-	int interval;
-	//char *host_id;
-	char host_id[BUF_LEN];
-	//char *interface_name;
-	char interface_name[BUF_LEN];
+	int interval = 3;
+	char *host_id;
+	char *interface_name;
 
-	/* read and set config */
-	FILE *fp;
-	char str[BUF_LEN];
-
-	fp = fopen(config_file, "r");
-	if (fp == NULL) {
-		printf("cannot open file %s\n", config_file);
-		return -1;
-	}
-
-	while (fgets(str, BUF_LEN, fp) != NULL) {
-		char *adr;
-
-		if ((adr = strstr(str, CONF_INTERVAL)) != NULL) {
-			char *interval_str = adr + strlen(CONF_INTERVAL) + CONF_DEVIDE_LEN;
-			int interval_int = atoi(interval_str);
-			if (interval_int != 0) {
-				interval = interval_int;
-			}
-		} else if ((adr = strstr(str, CONF_INTERFACE)) != NULL) {
-			char *interface_name_str = adr + strlen(CONF_INTERFACE) + CONF_DEVIDE_LEN;
-			strcpy(interface_name, permute_str(interface_name_str));
-		} else if ((adr = strstr(str, CONF_HOSTID)) != NULL) {
-			char *host_id_str = adr + strlen(CONF_HOSTID) + CONF_DEVIDE_LEN;
-			strcpy(host_id, permute_str(host_id_str));
-		}
-	}
-
-	printf("interavl: %d\n", interval);
-	printf("interface_name: %s\n", interface_name);
-	printf("host_id: %s\n", host_id);
-
-	/* setting client or server mode and peer address. */
-	/*
 	if (argc <= 2) {
 		usage();
 		return 0;
 	}
 
 	if (strncmp(INFO_SERVER_MODE, opt, strlen(INFO_SERVER_MODE)) == 0) {
+
 		if (argc <= 4) {
 			usage_server();
 			return 0;
@@ -280,6 +240,7 @@ int main(int argc, char **argv, char **envp)
 			interface_name = argv[3];
 			host_id = argv[4];
 		}
+		peer_host = argv[2];
 		ret = server(envp, peer_host, interval, interface_name, host_id);
 	} else if (strncmp(CLIENT_MODE, opt, strlen(CLIENT_MODE)) == 0) {
 		if (argc <= 2) {
@@ -290,7 +251,7 @@ int main(int argc, char **argv, char **envp)
 		}
 		ret = client(peer_host);
 	}
-	*/
+
 
 	return 0;
 }
