@@ -6,6 +6,7 @@
 #include <openssl/err.h>
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
+#include <openssl/rsa.h>
 #include <openssl/x509v3.h>
 #include "reentrant.h"
 
@@ -13,8 +14,7 @@
 #include <pthread.h>
 #define THREAD_CC
 #define THREAD_TYPE                    pthread_t
-#define THREAD_CREATE(tid, entry, arg) pthread_create(&(tid), NULL, \
-                                                      (entry), (arg))
+#define THREAD_CREATE(tid, entry, arg) pthread_create(&(tid), NULL, (entry), (arg))
 #else
 #include <windows.h>
 #define THREAD_CC                      __cdecl

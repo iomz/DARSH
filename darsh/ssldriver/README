@@ -1,0 +1,4 @@
+1. darsh clients make request file
+2. darsh clients send ~req.pem/~key.pem to CA server
+3. CA server generates the client certificate and send it back to the client
+4. done.

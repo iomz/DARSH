@@ -6,4 +6,4 @@ all: rsautl
 rsautl: rsautl.o
 	$(CC) $(CFLAGS) -o rsautl rsautl.o $(LIBS)
 clean:
-	rm -f rsautl rsautl.o
+	rm -f rsautl rsautl.o *pem

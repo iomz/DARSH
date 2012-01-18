@@ -15,8 +15,8 @@ static void callback(int p, int n, void *arg)
 
 int main (int argc, char *argv[])
 {
-  char *file_pem = "priv.pem";
-  char *file_pem_pub = "pub.pem";
+  char *file_pem = "privkey.pem";
+  char *file_pem_pub = "pubkey.pem";
   FILE *fp;
   
   int bits = 512;//512, 1024, 2048, 4096
@@ -25,18 +25,18 @@ int main (int argc, char *argv[])
   RSA *rsa;
   EVP_PKEY *pkey;
   
-  //GENERATE KEY
+  // GENERATE KEY
   rsa=RSA_generate_key(bits,exp,callback,NULL);
   if(RSA_check_key(rsa)!=1){
     fprintf(stderr, "Error whilst checking key.\n");
     exit(1);
   }
   
-  //ADD KEY TO EVP
+  // ADD KEY TO EVP
   pkey = EVP_PKEY_new();
   EVP_PKEY_assign_RSA(pkey, rsa);
   
-  //WRITE PRIVATE KEY
+  // WRITE PRIVATE KEY
   if(!(fp = fopen(file_pem, "w"))) {
     fprintf(stderr, "Error opening PEM file %s\n", file_pem);
     exit(1);
@@ -47,7 +47,7 @@ int main (int argc, char *argv[])
   }
   close(fp);
   
-  //WRITE PUBLIC KEY
+  // WRITE PUBLIC KEY
   if(!(fp = fopen(file_pem_pub, "w"))) {
     fprintf(stderr, "Error opening PEM file %s\n", file_pem_pub);
     exit(1);
@@ -58,7 +58,7 @@ int main (int argc, char *argv[])
   }
   close(fp);
   
-  //FREE
+  // FREE
   RSA_free(rsa);
   
   return 0;

@@ -42,9 +42,9 @@ basicConstraints = CA:false
 subjectAltName = DNS:splat.zork.org,DNS:localhost
 
 [ req_distinguished_name ]
-countryName            = JP
-stateOrProvinceName    = Kanagawa
-localityName           = Fujisawa
+countryName            = US
+stateOrProvinceName    = Virginia
+localityName           = Fairfax
 organizationName       = Zork.org
 commonName             = splat.zork.org
 
