@@ -1,1 +1,2 @@
-openssl genrsa -out privkey.pem -rand /dev/random -des3 -F4 1024
+cat msg | ./sv sign fookey.pem foocert.pem | ./ed encrypt barcert.pem > msg.smime
+cat msg.smime | ./ed decrypt barkey.pem barcert.pem | ./sv verify foocert.pem

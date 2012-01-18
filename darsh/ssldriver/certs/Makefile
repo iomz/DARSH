@@ -3,16 +3,15 @@ CC = gcc
 CFLAGS = -g -Wall -pthread
 LFLAGS = -lssl -lcrypto
 RM = /bin/rm
-CAT = /bin/cat
 OPENSSL = /usr/bin/openssl
 
 #
 OBJS =  certscommon.o \
 	certsgen.o \
-	certsreq.o \
-	smime.o
+	sv.o \
+	ed.o
 #
-BINS = certsgen certsreq smime
+BINS = certsgen sv ed
 #
 all: $(BINS)
 #
@@ -24,11 +23,7 @@ $(OBJS): certscommon.h
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@
 #
-$(KEY): 
-	
-
-#
 clean:
 	$(RM) -f $(BINS) $(OBJS) *~
 #
-distclean: clean certclean
+distclean: clean

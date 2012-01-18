@@ -1,4 +1,4 @@
-#include "certscommon.h"
+#include "sslcommon.h"
 
 struct entry ext_ent[EXT_COUNT] = {
   {"basicConstraints", "CA:FALSE"},
@@ -72,7 +72,10 @@ main (int argc, char *argv[])
   X509V3_EXT_print (out, subjAltName, 0, 0);
   fputc ('\n', stdout);
 
-/* WE SHOULD NOW ASK WHETHER TO CONTINUE OR NOT */
+  fprintf(stderr, "\nContinue? [y/n]: ");
+  char yn = getchar();
+  if( yn  == 'n' || yn == 'N')
+    return 0;
 
 /* create new certificate */
   if (!(cert = X509_new ()))
@@ -103,30 +106,6 @@ main (int argc, char *argv[])
   if (!(X509_gmtime_adj (X509_get_notAfter (cert), EXPIRE_SECS)))
     int_error ("Error setting ending time of the certificate");
 
-/* add x509v3 extensions as specified */
-  X509V3_set_ctx (&ctx, CAcert, cert, NULL, NULL, 0);
-  for (i = 0; i < EXT_COUNT; i++)
-    {
-      X509_EXTENSION *ext;
-      if (!(ext = X509V3_EXT_conf (NULL, &ctx,
-				   ext_ent[i].key, ext_ent[i].value)))
-	{
-	  fprintf (stderr, "Error on \"%s = %s\"\n",
-		   ext_ent[i].key, ext_ent[i].value);
-	  int_error ("Error creating X509 extension object");
-	}
-      if (!X509_add_ext (cert, ext, -1))
-	{
-	  fprintf (stderr, "Error on \"%s = %s\"\n",
-		   ext_ent[i].key, ext_ent[i].value);
-	  int_error ("Error adding X509 extension to certificate");
-	}
-      X509_EXTENSION_free (ext);
-    }
-
-/* add the subjectAltName in the request to the cert */
-  if (!X509_add_ext (cert, subjAltName, -1))
-    int_error ("Error adding subjectAltName to certificate");
 
 /* sign the certificate with the CA private key */
   if (EVP_PKEY_type (CApkey->type) == EVP_PKEY_DSA)

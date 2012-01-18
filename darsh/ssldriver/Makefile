@@ -6,23 +6,27 @@ RM = /bin/rm
 CAT = /bin/cat
 OPENSSL = /usr/bin/openssl
 
-
 OBJS = reentrant.o	\
        sslcommon.o	\
        sslclnt.o	\
-       sslserv.o
+       sslserv.o	\
+	sv.o \
+	ed.o
 
-BINS = sslclnt sslserv
+BINS = sslclnt sslserv sv ed 
 
 CA = root.pem servCA.pem
 SERVCERT = serv.pem
 CLNTCERT = clnt.pem 
 
-#For the initial definition for certifications and DH parameters generation
+#For the initial definition for certifications
+#all: $(CA) $(SERVCERT) $(CLNTCERT)
 #all: $(CA) 
+#all: $(SERVCERT) $(CLNTCERT)
 #all: $(SERVCERT)
 #all: $(CLNTCERT)
 all: $(BINS)
+
 #
 $(BINS): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(@).o sslcommon.o reentrant.o $(LFLAGS)
@@ -40,7 +44,7 @@ $(CA): $(CA:.pem=.cnf)
 	$(OPENSSL) x509 -req -in servCAreq.pem -sha1 -extfile servCA.cnf -extensions certificate_extensions -CA root.pem -CAkey root.pem -CAcreateserial -out servCAcert.pem
 	$(CAT) servCAcert.pem servCAkey.pem rootcert.pem > servCA.pem
 #
-$(CERTS): $(SERVCERT:.pem=.cnf)
+$(SERVCERT): $(SERVCERT:.pem=.cnf)
 	$(OPENSSL) req -newkey rsa:1024 -sha1 -keyout servkey.pem -out servreq.pem -config serv.cnf -reqexts req_extensions
 	$(OPENSSL) x509 -req -in servreq.pem -sha1 -extfile serv.cnf -extensions certificate_extensions -CA servCA.pem -CAkey servCA.pem -CAcreateserial -out servcert.pem
 	$(CAT) servcert.pem servkey.pem servCAcert.pem rootcert.pem > serv.pem
