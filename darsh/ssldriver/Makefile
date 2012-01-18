@@ -17,15 +17,16 @@ BINS = sslclnt sslserv sv ed
 
 CA = root.pem servCA.pem
 SERVCERT = serv.pem
+SREQ = servkey.pem servreq.pem
 CLNTCERT = clnt.pem 
+CREQ = clntkey.pem clntreq.pem
 
 #For the initial definition for certifications
-#all: $(CA) $(SERVCERT) $(CLNTCERT)
+#all: $(CA) $(SERVCERT) $(CLNTCERT) $(BINS)
 #all: $(CA) 
 #all: $(SERVCERT) $(CLNTCERT)
-#all: $(SERVCERT)
-#all: $(CLNTCERT)
-all: $(BINS)
+all: $(SREQ) $(CREQ)
+#all: $(BINS)
 
 #
 $(BINS): $(OBJS)
@@ -49,10 +50,16 @@ $(SERVCERT): $(SERVCERT:.pem=.cnf)
 	$(OPENSSL) x509 -req -in servreq.pem -sha1 -extfile serv.cnf -extensions certificate_extensions -CA servCA.pem -CAkey servCA.pem -CAcreateserial -out servcert.pem
 	$(CAT) servcert.pem servkey.pem servCAcert.pem rootcert.pem > serv.pem
 #
+$(SREQ): serv.cnf
+	$(OPENSSL) req -newkey rsa:1024 -sha1 -keyout servkey.pem -out servreq.pem -config serv.cnf -reqexts req_extensions
+#
 $(CLNTCERT): $(CLNTCERT:.pem=.cnf)
 	$(OPENSSL) req -newkey rsa:1024 -sha1 -keyout clntkey.pem -out clntreq.pem -config clnt.cnf -reqexts req_extensions
 	$(OPENSSL) x509 -req -in clntreq.pem -sha1 -extfile clnt.cnf -extensions certificate_extensions -CA root.pem -CAkey root.pem -CAcreateserial -out clntcert.pem
 	$(CAT) clntcert.pem clntkey.pem rootcert.pem > clnt.pem
+#
+$(CREQ): clnt.cnf
+	$(OPENSSL) req -newkey rsa:1024 -sha1 -keyout clntkey.pem -out clntreq.pem -config clnt.cnf -reqexts req_extensions
 #
 certclean:
 	$(RM) -f rootkey.pem rootreq.pem rootcert.pem root.pem root.srl
