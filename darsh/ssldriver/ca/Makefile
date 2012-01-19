@@ -1,11 +1,21 @@
+CC = gcc
+CFLAGS = -Wall
+LFLAGS = -lssl -lcrypto
 OPENSSL = /usr/bin/openssl
 CAT = /bin/cat
 RM = /bin/rm
 CA = root.pem servCA.pem
+BIN = clntsign servsign
+OBJS = clntsign.o servsign.o signcommon.o
 
 #For the initial definition for certifications
-all: $(CA) 
-
+#all: $(CA) $(BIN)
+all: $(BIN)
+#
+$(BIN): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $(@).o signcommon.o $(LFLAGS) 
+#
+$(OBJS): signcommon.h
 #
 $(CA): $(CA:.pem=.cnf)
 	$(OPENSSL) req -newkey rsa:1024 -sha1 -keyout rootkey.pem -out rootreq.pem -config root.cnf

@@ -10,11 +10,8 @@ OBJS = reentrant.o	\
        sslcommon.o	\
        sslclnt.o	\
        sslserv.o	\
-	cgen.o		\
-	sv.o 		\
-	ed.o
 
-BINS = sslclnt sslserv cgen
+BINS = sslclnt sslserv
 
 SERVCERT = serv.pem
 SREQ = servkey.pem servreq.pem
@@ -23,6 +20,8 @@ SV = serv.pem
 CLNTCERT = clnt.pem 
 CREQ = clntkey.pem clntreq.pem
 CV = clnt.pem
+
+DHPARAMS = dh512.pem dh1024.pem
 
 #For the initial definition for certifications
 all: $(SREQ) $(CREQ) $(BINS)
@@ -41,11 +40,22 @@ $(SREQ):
 $(CREQ):
 	$(OPENSSL) req -newkey rsa:1024 -sha1 -keyout clntkey.pem -out clntreq.pem -config clnt.cnf -reqexts req_extensions
 #
+dhparam: $(DHPARAMS)
+#
 certclean:
 	$(RM) -f servkey.pem servreq.pem servcert.pem serv.pem
 	$(RM) -f clntkey.pem clntreq.pem clntcert.pem clnt.pem
 #
-clean:
-	$(RM) -f $(BINS) $(OBJS) *~ cgen
+dh512.pem:
+	$(OPENSSL) dhparam -check -text -5 512 -out dh512.pem
+
+dh1024.pem:
+	$(OPENSSL) dhparam -check -text -5 1024 -out dh1024.pem
+
+dhparamclean:
+	$(RM) -f $(DHPARAMS)
 #
-distclean: clean certclean
+clean:
+	$(RM) -f $(BINS) $(OBJS) *~
+#
+distclean: clean certclean dhparamclean

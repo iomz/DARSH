@@ -1,21 +1,9 @@
-#include <openssl/bio.h>
-#include <openssl/crypto.h>
-#include <openssl/err.h>
-#include <openssl/pem.h>
-#include <openssl/rand.h>
-#include <openssl/rsa.h>
-#include <openssl/ssl.h>
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "signcommon.h"
 
-struct
-entry{
-  char *key;
-  char *value;
-};
+#define     REQ_FILE "clntreq.pem"
+#define     CA_FILE "root.pem"
+#define     CA_KEY "rootkey.pem"
+#define     CERT_FILE "clntcert.pem"
 
 struct
 entry ext_ent[EXT_COUNT] = {
@@ -26,30 +14,9 @@ entry ext_ent[EXT_COUNT] = {
   {"keyUsage", "nonRepudiation,digitalSignature,keyEncipherment"}
 };
 
-void
-seed_prng(void){
-  RAND_load_file("/dev/urandom", 1024);
-}
-
 int
 main(int argc, char *argv[]){
-  if(strcmp(argv[1], "serv")==0){
-    char REQ_FILE[] = "servreq.pem";
-    char CA_FILE[] = "servCA.pem";
-    char CA_KEY[] = "servkey.pem";
-    char CERT_FILE[] = "servcert.pem";
-  }
-  else if(strcmp(argv[1], "clnt")==0){
-    char REQ_FILE[] = "clntreq.pem";
-    char CA_FILE[] = "root.pem";
-    char CA_KEY[] = "rootkey.pem";
-    char CERT_FILE[] = "clntcert.pem";
-  }
-  else{
-    fprintf(stderr, "Usage: %s(serv|clnt)\n", argv[0]);
-    return 1;
-  }
-  
+
   int i, subjAltName_pos;
   long serial = 1;
   EVP_PKEY *pkey, *CApkey;
@@ -104,10 +71,10 @@ main(int argc, char *argv[]){
   X509_NAME_print(out, name, 0);
   fputc('\n', stdout);
 
-  fprintf(stderr, "\nContinue? [y/n]: ");
-  char yn = getchar();
-  if( yn  == 'n' || yn == 'N')
-    return 0;
+/*   fprintf(stderr, "\nContinue? [y/n]: "); */
+/*   char yn = getchar(); */
+/*   if( yn  == 'n' || yn == 'N') */
+/*     return 0; */
 
 /* create new certificate */
   if(!(cert = X509_new()))
