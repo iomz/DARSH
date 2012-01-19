@@ -14,8 +14,7 @@ OBJS = reentrant.o	\
 	sv.o 		\
 	ed.o
 
-BINS = sslclnt sslserv sv ed 
-CGEN = cgen
+BINS = sslclnt sslserv cgen
 
 SERVCERT = serv.pem
 SREQ = servkey.pem servreq.pem
@@ -26,14 +25,7 @@ CREQ = clntkey.pem clntreq.pem
 CV = clnt.pem
 
 #For the initial definition for certifications
-#all: $(SREQ) $(CREQ)
-#all: $(SV) $(CV)
-#all: $(BINS)
-all: $(CGEN)
-#all: $(SREQ) $(CREQ) $(BINS) $(CGEN)
-#
-$(CGEN): $(OBJS)
-	$(CC) $(CFLAGS) -o cgen cgen.c sslcommon.o reentrant.o $(LFLAGS)
+all: $(SREQ) $(CREQ) $(BINS)
 #
 $(BINS): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(@).o sslcommon.o reentrant.o $(LFLAGS)
@@ -46,20 +38,10 @@ $(OBJS): sslcommon.h reentrant.h
 $(SREQ):
 	$(OPENSSL) req -newkey rsa:1024 -sha1 -keyout servkey.pem -out servreq.pem -config serv.cnf -reqexts req_extensions
 #
-$(SV):
-	$(OPENSSL) x509 -req -in servreq.pem -sha1 -extfile serv.cnf -extensions certificate_extensions -CA servCA.pem -CAkey servCA.pem -CAcreateserial -out servcert.pem
-	$(CAT) servcert.pem servkey.pem servCAcert.pem rootcert.pem > serv.pem
-#
 $(CREQ):
 	$(OPENSSL) req -newkey rsa:1024 -sha1 -keyout clntkey.pem -out clntreq.pem -config clnt.cnf -reqexts req_extensions
 #
-$(CV):
-	$(OPENSSL) x509 -req -in clntreq.pem -sha1 -extfile clnt.cnf -extensions certificate_extensions -CA root.pem -CAkey root.pem -CAcreateserial -out clntcert.pem
-	$(CAT) clntcert.pem clntkey.pem rootcert.pem > clnt.pem
-#
 certclean:
-	$(RM) -f rootkey.pem rootreq.pem rootcert.pem root.pem root.srl
-	$(RM) -f servCAkey.pem servCAreq.pem servCAcert.pem servCA.pem servCA.srl
 	$(RM) -f servkey.pem servreq.pem servcert.pem serv.pem
 	$(RM) -f clntkey.pem clntreq.pem clntcert.pem clnt.pem
 #

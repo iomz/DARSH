@@ -1,51 +1,48 @@
 #include "sslcommon.h"
  
-/* Set up ephemeral RSA stuff */
-RSA *rsa_512 = NULL;
-RSA *rsa_1024 = NULL;
+DH *dh512 = NULL;
+DH *dh1024 = NULL;
 
-void init_rsakey(void)
+void init_dhparams(void)
 {
-  rsa_512 = RSA_generate_key(512,RSA_F4,NULL,NULL);
-  if (rsa_512 == NULL)
-    int_error("Error opening file rsa512.pem");
-  rsa_1024 = RSA_generate_key(1024,RSA_F4,NULL,NULL);
-  if (rsa_1024 == NULL)
-    int_error("Error opening file rsa1024.pem");
+    BIO *bio;
+
+    bio = BIO_new_file("dh512.pem", "r");
+    if (!bio)
+        int_error("Error opening file dh512.pem");
+    dh512 = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
+    if (!dh512)
+        int_error("Error reading DH parameters from dh512.pem");
+    BIO_free(bio);
+
+    bio = BIO_new_file("dh1024.pem", "r");
+    if (!bio)
+        int_error("Error opening file dh1024.pem");
+    dh1024 = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
+    if (!dh1024)
+        int_error("Error reading DH parameters from dh1024.pem");
+    BIO_free(bio);
 }
 
-
-RSA *tmp_rsa_callback(SSL *s, int is_export, int keylength)
+DH *tmp_dh_callback(SSL *ssl, int is_export, int keylength)
 {
-  RSA *rsa_tmp=NULL;
+    DH *ret;
 
-  init_rsakey();
+    if (!dh512 || !dh1024)
+        init_dhparams(  );
 
-  switch (keylength) {
-  case 512:
-    if (rsa_512)
-      rsa_tmp = rsa_512;
-    else { /* generate on the fly, should not happen in this example */
-      rsa_tmp = RSA_generate_key(keylength,RSA_F4,NULL,NULL);
-      rsa_512 = rsa_tmp; /* Remember for later reuse */
+    switch (keylength)
+    {
+        case 512:
+            ret = dh512;
+            break;
+        case 1024:
+        default: /* generating DH params is too costly to do on the fly */
+            ret = dh1024;
+            break;
     }
-    break;
-  case 1024:
-    if (rsa_1024)
-      rsa_tmp=rsa_1024;
-    else
-      ;
-    break;
-  default:
-    /* Generating a key on the fly is very costly, so use what is there */
-    if (rsa_1024)
-      rsa_tmp=rsa_1024;
-    else
-      rsa_tmp=rsa_512; /* Use at least a shorter key */
-  }
-  return rsa_tmp;
+    return ret;
 }
-
 
 #define CIPHER_LIST "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH"
 #define CAFILE "rootcert.pem"
@@ -64,9 +61,12 @@ SSL_CTX *setup_server_ctx(void)
         int_error("Error loading certificate from file");
     if (SSL_CTX_use_PrivateKey_file(ctx, CERTFILE, SSL_FILETYPE_PEM) != 1)
         int_error("Error loading private key from file");
+    SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
+                       verify_callback);
     SSL_CTX_set_options(ctx, SSL_OP_ALL | SSL_OP_NO_SSLv2 |
-			SSL_OP_EPHEMERAL_RSA); // Use ephemeral RSA key exchange 
-    SSL_CTX_set_tmp_rsa_callback(ctx, tmp_rsa_callback);
+                             SSL_OP_SINGLE_DH_USE);
+    SSL_CTX_set_tmp_dh_callback(ctx, tmp_dh_callback);
+    SSL_CTX_set_verify_depth(ctx, 4);
     if (SSL_CTX_set_cipher_list(ctx, CIPHER_LIST) != 1)
         int_error("Error setting cipher list (no valid ciphers)");
     return ctx;
