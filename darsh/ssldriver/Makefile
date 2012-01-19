@@ -1,6 +1,6 @@
 
 CC = gcc
-CFLAGS = -g -Wall -pthread
+CFLAGS = -Wall -pthread
 LFLAGS = -lssl -lcrypto
 RM = /bin/rm
 CAT = /bin/cat
@@ -17,8 +17,6 @@ OBJS = reentrant.o	\
 BINS = sslclnt sslserv sv ed 
 CGEN = cgen
 
-CA = root.pem servCA.pem
-
 SERVCERT = serv.pem
 SREQ = servkey.pem servreq.pem
 SV = serv.pem
@@ -28,11 +26,11 @@ CREQ = clntkey.pem clntreq.pem
 CV = clnt.pem
 
 #For the initial definition for certifications
-#all: $(CA) 
 #all: $(SREQ) $(CREQ)
 #all: $(SV) $(CV)
 #all: $(BINS)
 all: $(CGEN)
+#all: $(SREQ) $(CREQ) $(BINS) $(CGEN)
 #
 $(CGEN): $(OBJS)
 	$(CC) $(CFLAGS) -o cgen cgen.c sslcommon.o reentrant.o $(LFLAGS)
@@ -44,14 +42,6 @@ $(OBJS): sslcommon.h reentrant.h
 #
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@
-#
-$(CA): $(CA:.pem=.cnf)
-	$(OPENSSL) req -newkey rsa:1024 -sha1 -keyout rootkey.pem -out rootreq.pem -config root.cnf
-	$(OPENSSL) x509 -req -in rootreq.pem -sha1 -extfile root.cnf -extensions certificate_extensions -signkey rootkey.pem -out rootcert.pem
-	$(CAT) rootcert.pem rootkey.pem > root.pem
-	$(OPENSSL) req -newkey rsa:1024 -sha1 -keyout servCAkey.pem -out servCAreq.pem -config servCA.cnf
-	$(OPENSSL) x509 -req -in servCAreq.pem -sha1 -extfile servCA.cnf -extensions certificate_extensions -CA root.pem -CAkey root.pem -CAcreateserial -out servCAcert.pem
-	$(CAT) servCAcert.pem servCAkey.pem rootcert.pem > servCA.pem
 #
 $(SREQ):
 	$(OPENSSL) req -newkey rsa:1024 -sha1 -keyout servkey.pem -out servreq.pem -config serv.cnf -reqexts req_extensions
@@ -74,6 +64,6 @@ certclean:
 	$(RM) -f clntkey.pem clntreq.pem clntcert.pem clnt.pem
 #
 clean:
-	$(RM) -f $(BINS) $(OBJS) *~
+	$(RM) -f $(BINS) $(OBJS) *~ cgen
 #
 distclean: clean certclean

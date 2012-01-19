@@ -5,14 +5,17 @@ x509_extensions		= req_extensions
 # the following sections are specific to the request we're building       
 
 [ certificate_extensions ]
-basicConstraints = CA:false
+basicConstraints = CA:true
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid:always,issuer:always
 
 [ req_distinguished_name ]
 countryName            = JP
 stateOrProvinceName    = Kanagawa
 localityName           = Fujisawa
 organizationName       = darsh
-commonName             = client
+organizationalUnitName = Server Division
+commonName             = Server CA
 
 [ req_extensions ]
 basicConstraints = CA:true

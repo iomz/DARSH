@@ -55,7 +55,7 @@ main (int argc, char *argv[])
 /* read in the CA private key */
   if (!(fp = fopen (CA_KEY, "r")))
     int_error ("Error reading CA private key file");
-  if (!(CApkey = PEM_read_PrivateKey (fp, NULL, NULL, "root")))
+  if (!(CApkey = PEM_read_PrivateKey (fp, NULL, NULL, "password")))
     int_error ("Error reading CA private key in file");
   fclose (fp);
 
@@ -63,6 +63,13 @@ main (int argc, char *argv[])
   if (!(name = X509_REQ_get_subject_name (req)))
     int_error ("Error getting subject name from request");
   X509_NAME_print (out, name, 0);
+  fputc ('\n', stdout);
+  if (!(req_exts = X509_REQ_get_extensions (req)))
+    int_error ("Error getting the request's extensions");
+  subjAltName_pos = X509v3_get_ext_by_NID (req_exts,
+					   OBJ_sn2nid ("subjectAltName"), -1);
+  subjAltName = X509v3_get_ext (req_exts, subjAltName_pos);
+  X509V3_EXT_print (out, subjAltName, 0, 0);
   fputc ('\n', stdout);
 
   fprintf(stderr, "\nContinue? [y/n]: ");

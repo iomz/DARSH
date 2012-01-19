@@ -33,9 +33,9 @@
 #define CA_FILE		"root.pem"
 #define CA_KEY		"rootkey.pem"
 #define CA_DIR		NULL
-#define REQ_FILE	"newreq.pem"  // Sign request to ROOT CA file
-#define PKEY_FILE	"privkey.pem" // DARSH Host's key
-#define CERT_FILE	"newcert.pem" // ROOT signed host certificate which DARSH client must have
+#define REQ_FILE	"clntreq.pem" // Sign request to ROOT CA file
+//#define PKEY_FILE	"privkey.pem" // DARSH Host's key
+#define CERT_FILE	"clntcert.pem" // ROOT signed host certificate which DARSH client must have
 
 /* CRL definition field for x509 extension */
 #define DAYS_TILL_EXPIRE 30

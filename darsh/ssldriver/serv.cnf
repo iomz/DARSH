@@ -6,7 +6,6 @@ x509_extensions		= req_extensions
 
 [ certificate_extensions ]
 basicConstraints = CA:false
-subjectAltName = DNS:splat.zork.org,DNS:localhost
 
 [ req_distinguished_name ]
 countryName            = JP
@@ -17,4 +16,3 @@ commonName             = server
 
 [ req_extensions ]
 basicConstraints = CA:true
-subjectAltName = DNS:splat.zork.org,DNS:localhost
