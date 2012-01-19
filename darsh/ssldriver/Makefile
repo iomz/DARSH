@@ -10,10 +10,12 @@ OBJS = reentrant.o	\
        sslcommon.o	\
        sslclnt.o	\
        sslserv.o	\
-	sv.o \
+	cgen.o		\
+	sv.o 		\
 	ed.o
 
 BINS = sslclnt sslserv sv ed 
+CGEN = cgen
 
 CA = root.pem servCA.pem
 
@@ -28,9 +30,12 @@ CV = clnt.pem
 #For the initial definition for certifications
 #all: $(CA) 
 #all: $(SREQ) $(CREQ)
-all: $(SV) $(CV)
+#all: $(SV) $(CV)
 #all: $(BINS)
-
+all: $(CGEN)
+#
+$(CGEN): $(OBJS)
+	$(CC) $(CFLAGS) -o cgen cgen.c sslcommon.o reentrant.o $(LFLAGS)
 #
 $(BINS): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(@).o sslcommon.o reentrant.o $(LFLAGS)

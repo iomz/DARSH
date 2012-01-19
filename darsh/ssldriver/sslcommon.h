@@ -27,16 +27,17 @@
 #endif
 
 #define PORT            "16001"
-#define SERVER          "localhost"
-#define CLIENT          "localhost"
+#define SERVER          "localhost" // get FQDN from IP table on DARSH server
+//#define CLIENT          "localhost"
 
 #define CA_FILE		"root.pem"
 #define CA_KEY		"rootkey.pem"
 #define CA_DIR		NULL
-#define REQ_FILE	"newreq.pem"
-#define PKEY_FILE	"privkey.pem"
-#define CERT_FILE	"newcert.pem"
+#define REQ_FILE	"newreq.pem"  // Sign request to ROOT CA file
+#define PKEY_FILE	"privkey.pem" // DARSH Host's key
+#define CERT_FILE	"newcert.pem" // ROOT signed host certificate which DARSH client must have
 
+/* CRL definition field for x509 extension */
 #define DAYS_TILL_EXPIRE 30
 #define EXPIRE_SECS (60*60*24*DAYS_TILL_EXPIRE)
 #define EXT_COUNT 5
