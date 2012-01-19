@@ -5,14 +5,14 @@ OPENSSL = /usr/bin/openssl
 CAT = /bin/cat
 RM = /bin/rm
 CA = root.pem servCA.pem
-BIN = clntsign servsign
-OBJS = clntsign.o servsign.o signcommon.o
+BINS = xcertclnt xcertserv
+OBJS = xcertclnt.o xcertserv.o signcommon.o
 
 #For the initial definition for certifications
-#all: $(CA) $(BIN)
-all: $(BIN)
+#all: $(CA) $(BINS)
+all: $(BINS)
 #
-$(BIN): $(OBJS)
+$(BINS): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(@).o signcommon.o $(LFLAGS) 
 #
 $(OBJS): signcommon.h
@@ -29,5 +29,7 @@ certclean:
 	$(RM) -f rootkey.pem rootreq.pem rootcert.pem root.pem root.srl
 	$(RM) -f servCAkey.pem servCAreq.pem servCAcert.pem servCA.pem servCA.srl
 #
+clean:
+	$(RM) $(BIN) $(OBJS)
 
 distclean: clean certclean

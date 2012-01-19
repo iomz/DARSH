@@ -2,7 +2,7 @@
 
 #define     REQ_FILE  "servreq.pem"
 #define     CA_FILE  "servCA.pem"
-#define     CA_KEY  "servkey.pem"
+#define     CA_KEY  "servCAkey.pem"
 #define     CERT_FILE "servcert.pem"
 
 struct
@@ -62,7 +62,7 @@ main(int argc, char *argv[]){
 /* read in the CA private key */
   if(!(fp = fopen(CA_KEY, "r")))
     int_error("Error reading CA private key file");
-  if(!(CApkey = PEM_read_PrivateKey(fp, NULL, NULL, "root")))
+  if(!(CApkey = PEM_read_PrivateKey(fp, NULL, NULL, "serv")))
     int_error("Error reading CA private key in file");
   fclose(fp);
 
