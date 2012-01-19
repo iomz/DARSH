@@ -105,11 +105,13 @@ char *get_client_info(char *host_id, char *interface_name)
 char *get_client_info_FQDN(char *host_id)
 {
 	char client_info[BUF_LEN];
+	char host_name[BUF_LEN];
 	strcpy(client_info, host_id);
+	strcpy(host_name, get_host());
 
 	strcat(client_info, devide_letter);
-	strncat(client_info, get_host(), strlen(get_host()));
-	strcat(client_info, "\0");
+	strncat(client_info, host_name, strlen(host_name));
+
 	strcat(client_info, "\n");
 
 	return client_info;
@@ -124,7 +126,7 @@ int server(char **envp, char *peer_host, int interval, char *interface_name, cha
 	unsigned short info_port = TABLE_SERVER_PORT;
 	unsigned short port = WAIT_SERVER_PORT;
 	char *hostname = peer_host;
-	char *client_info;
+	//char *client_info;
 	pid_t pid, cpid;
 
 	if ((sock_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
@@ -155,7 +157,8 @@ int server(char **envp, char *peer_host, int interval, char *interface_name, cha
 	} else {
 		while (1) {
 			//client_info = get_client_info(host_id, interface_name);
-			client_info = get_client_info_FQDN(host_id);
+			char client_info[BUF_LEN];
+			strcpy(client_info, get_client_info_FQDN(host_id));
 			printf("send: %s\n", client_info);
 			len = send(sock_fd, client_info, strlen(client_info), 0);
 			sleep(interval);
@@ -227,6 +230,13 @@ void usage(void)
 
 #define INFO_SERVER_MODE "s"
 #define CLIENT_MODE "c"
+/*
+int main()
+{
+	printf("%s\n", get_client_info_FQDN("hoge"));
+	return 0;
+}
+*/
 
 int main(int argc, char **argv, char **envp)
 {
