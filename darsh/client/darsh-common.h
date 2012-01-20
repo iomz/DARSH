@@ -1,7 +1,0 @@
-
-#define BUF_LEN 256
-#define PROTO_DEVIDE ", "
-#define PROTO_OFFSET strlen(PROTO_DEVIDE)
-#define TABLE_SERVER_PORT 5000
-#define PEER_SERVER_PORT 5001
-#define WAIT_SERVER_PORT 5002
