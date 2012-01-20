@@ -1,0 +1,37 @@
+DARSH
+
+==HOW TO USE==
+In this walkthrough, Alice wants to darsh to Bob.
+
+A.) Setup DARSH Table server
+-1. Place darsh/server on a server with the fixed IP address (serverA)
+-2. Take a note of the IP address (X.X.X.X)
+-3. make
+-4. Run darsh-server (./darsh-server)
+
+B.) Alice setups her DARSH Host
+-1. Place darsh/client on a PC with a DHCPed IP address (Alice)
+-2. make host
+-3. Enter passwd for host certificate (passA)
+-4. Enter passwd for client certificate (passB)
+-5. (!Important:)Ask yasukata@ht.sfc.keio.ac.jp or iomz@sfc.wide.ad.jp 
+    for permission of certificate publication
+-6. ./xcertclnt (send certificate request file(clntreq.pem/servreq.pem)
+    to our CA and get the certificates(clntcert.pem/servcert.pem))
+-7. ./chaincert.sh (make the certificate chain files(clnt.pem/serv.pem))
+-8. ./darsh-client s <serverA> <interface> <ID>
+    ex.) ./darsh-client s X.X.X.X eth0 hoge
+-8. Enter passwd for host certificate(passA)
+-9. Wait
+
+C.) Bob setups his DARSH Client and access to Alice
+-1. Place darsh/client on a PC somewhere (Bob)
+-2. make client
+-3. Ask Alice to get the certificate(clnt.pem), the host's ID(hoge)
+     and DARSH client's passwd(passB)
+-4. Place clnt.pem in darsh/client
+-4. ./darsh-client c <serverA>
+    ex.) ./darsh-client c X.X.X.X
+-5. Enter ID(hoge)
+-6. Enter passwd for client certificate(passB)
+-7. DARSH!
